@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get(
-    path="/",
+    path="",
     response_model=List[User],
     summary="Shows all registered users",
 )
