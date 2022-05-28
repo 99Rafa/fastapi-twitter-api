@@ -12,7 +12,18 @@ router = APIRouter()
     summary="Register a new User",
 )
 def signup():
-    pass
+    """
+    Signup
+
+    Registers a user in the app
+
+    Parameters:
+        Request body:
+            - user: UserRegister
+
+    Returns:
+        User
+    """
 
 
 @router.post(
