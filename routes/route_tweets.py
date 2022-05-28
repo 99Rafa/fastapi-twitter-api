@@ -1,6 +1,8 @@
+import json
+from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Body, status
 
 from models.tweet import Tweet
 
@@ -18,12 +20,39 @@ def show_tweets():
 
 @router.post(
     path="",
-    response_model=Tweet,
+    # response_model=Tweet,
     status_code=status.HTTP_201_CREATED,
     summary="Creates a new tweet",
 )
-def create_tweet():
-    pass
+def create_tweet(tweet: Tweet = Body(...)):
+    """
+    Create tweet
+
+    Creates a new tweet in the database
+
+    Parameters:
+    - Request body:
+        - tweet: Tweet
+
+    Returns:
+    - Tweet
+    """
+    with open("databases/tweets.json", "r+", encoding="utf-8") as f:
+        result = json.load(f)
+
+        tweet_dict = tweet.dict()
+        tweet_dict["tweet_id"] = str(tweet_dict["tweet_id"])
+        tweet_dict["created_at"] = str(datetime.now())
+        tweet_dict["updated_at"] = str(tweet_dict["updated_at"])
+
+        tweet_dict["by"]["user_id"] = str(tweet_dict["by"]["user_id"])
+        tweet_dict["by"]["birth_date"] = str(tweet_dict["by"]["birth_date"])
+
+        result.append(tweet_dict)
+        f.seek(0)
+        json.dump(result, f)
+
+        return tweet_dict
 
 
 @router.get(
