@@ -15,12 +15,19 @@ router = APIRouter()
     summary="Shows all tweets",
 )
 def show_tweets():
-    pass
+    """
+    Show all tweets
+
+    Returns:
+    - All tweets in the app
+    """
+    with open("databases/tweets.json", "r+", encoding="utf-8") as f:
+        return json.load(f)
 
 
 @router.post(
     path="",
-    # response_model=Tweet,
+    response_model=Tweet,
     status_code=status.HTTP_201_CREATED,
     summary="Creates a new tweet",
 )
