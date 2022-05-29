@@ -1,6 +1,9 @@
+from dotenv import find_dotenv, load_dotenv
 from fastapi import FastAPI
 
 from routes import route_auth, route_tweets, route_users
+
+load_dotenv(find_dotenv())
 
 app = FastAPI()
 
