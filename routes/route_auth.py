@@ -1,8 +1,8 @@
-import json
+import bcrypt
+from fastapi import APIRouter, Body, HTTPException, status
 
-from fastapi import APIRouter, Body, status
-
-from models.user import User, UserRegister
+from db.mongo_connection import MongoDB
+from models.user import User, UserLogin, UserRegister
 
 router = APIRouter()
 
@@ -26,18 +26,28 @@ def signup(user: UserRegister = Body(...)):
     Returns:
     - User
     """
-    with open("databases/users.json", "r+", encoding="utf-8") as f:
-        result = json.load(f)
+    db = MongoDB.get_instance()
+    users_collection = db.users
 
-        user_dict = user.dict()
-        user_dict["user_id"] = str(user_dict["user_id"])
-        user_dict["birth_date"] = str(user_dict["birth_date"])
+    existing_user = users_collection.find_one({"email": user.email})
 
-        result.append(user_dict)
-        f.seek(0)
-        json.dump(result, f)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already in use",
+        )
 
-        return user_dict
+    user_dict = user.dict()
+    user_dict["user_id"] = str(user_dict["user_id"])
+    user_dict["birth_date"] = str(user_dict["birth_date"])
+
+    user_dict["password"] = bcrypt.hashpw(
+        user_dict["password"].encode("utf-8"),
+        bcrypt.gensalt(),
+    )
+
+    users_collection.insert_one(user_dict)
+    return user_dict
 
 
 @router.post(
