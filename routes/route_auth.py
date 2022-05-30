@@ -1,8 +1,10 @@
+import uuid
+
 import bcrypt
 from fastapi import APIRouter, Body, HTTPException, status
 
 from db.mongo_connection import MongoDB
-from models.user import User, UserLogin, UserRegister
+from models.user import User, UserCredentials, UserRegister
 
 router = APIRouter()
 
@@ -38,7 +40,7 @@ def signup(user: UserRegister = Body(...)):
         )
 
     user_dict = user.dict()
-    user_dict["user_id"] = str(user_dict["user_id"])
+    user_dict["user_id"] = str(uuid.uuid4())
     user_dict["birth_date"] = str(user_dict["birth_date"])
 
     user_dict["password"] = bcrypt.hashpw(
@@ -55,7 +57,7 @@ def signup(user: UserRegister = Body(...)):
     response_model=User,
     summary="Login a User",
 )
-def login(user: UserLogin = Body(...)):
+def login(user: UserCredentials = Body(...)):
     """
     Login
 
@@ -63,7 +65,7 @@ def login(user: UserLogin = Body(...)):
 
     Parameters:
     - Request body:
-        - user: UserRegister
+        - user: UserCredentials
 
     returns:
     - User
@@ -85,8 +87,4 @@ def login(user: UserLogin = Body(...)):
             detail="Wrong email or password",
         )
 
-    user_dict = dict(user_doc)
-    del user_dict["_id"]
-    del user_dict["password"]
-
-    return user_dict
+    return dict(user_doc)
