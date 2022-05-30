@@ -52,3 +52,10 @@ class UserCredentials(BaseModel):
 
 class UserRegister(UserCredentials, UserInfo):
     pass
+
+
+class UserUpdate(UserInfo):
+    email: EmailStr = Field(
+        ...,
+        example="rafa@gmail.com",
+    )
