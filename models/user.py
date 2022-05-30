@@ -6,7 +6,10 @@ from pydantic import BaseModel, EmailStr, Field
 
 class BaseUser(BaseModel):
     user_id: str = Field(...)
-    email: EmailStr = Field(...)
+    email: EmailStr = Field(
+        ...,
+        example="rafa@gmail.com",
+    )
 
 
 class UserInfo(BaseModel):
