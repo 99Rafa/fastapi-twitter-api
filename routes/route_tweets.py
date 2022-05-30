@@ -4,6 +4,7 @@ from typing import List
 
 from fastapi import APIRouter, Body, status
 
+from db.mongo_connection import MongoDB
 from models.tweet import Tweet
 
 router = APIRouter()
@@ -21,8 +22,12 @@ def show_tweets():
     Returns:
     - All tweets in the app
     """
-    with open("databases/tweets.json", "r+", encoding="utf-8") as f:
-        return json.load(f)
+    db = MongoDB.get_instance()
+    tweets_collection = db.tweets
+
+    tweets = tweets_collection.find()
+
+    return list(tweets)
 
 
 @router.post(
