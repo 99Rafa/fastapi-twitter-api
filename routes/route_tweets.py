@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Body, HTTPException, Path, status
+from pymongo import ReturnDocument
 
 from db.mongo_connection import MongoDB
 from models.tweet import Tweet, TweetInfo
@@ -166,7 +167,7 @@ def update_tweet(
                 "updated_at": str(datetime.now()),
             },
         },
-        new=True,
+        return_document=ReturnDocument.AFTER,
     )
 
     if not tweet_doc:
