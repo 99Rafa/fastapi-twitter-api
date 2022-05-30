@@ -49,22 +49,21 @@ def create_tweet(tweet: Tweet = Body(...)):
     Returns:
     - Tweet
     """
-    with open("databases/tweets.json", "r+", encoding="utf-8") as f:
-        result = json.load(f)
 
-        tweet_dict = tweet.dict()
-        tweet_dict["tweet_id"] = str(tweet_dict["tweet_id"])
-        tweet_dict["created_at"] = str(datetime.now())
-        tweet_dict["updated_at"] = str(tweet_dict["updated_at"])
+    db = MongoDB.get_instance()
+    tweets_collection = db.tweets
 
-        tweet_dict["by"]["user_id"] = str(tweet_dict["by"]["user_id"])
-        tweet_dict["by"]["birth_date"] = str(tweet_dict["by"]["birth_date"])
+    tweet_dict = tweet.dict()
+    tweet_dict["tweet_id"] = str(tweet_dict["tweet_id"])
+    tweet_dict["created_at"] = str(datetime.now())
+    tweet_dict["updated_at"] = str(tweet_dict["updated_at"])
 
-        result.append(tweet_dict)
-        f.seek(0)
-        json.dump(result, f)
+    tweet_dict["by"]["user_id"] = str(tweet_dict["by"]["user_id"])
+    tweet_dict["by"]["birth_date"] = str(tweet_dict["by"]["birth_date"])
 
-        return tweet_dict
+    tweets_collection.insert_one(tweet_dict)
+
+    return tweet_dict
 
 
 @router.get(
