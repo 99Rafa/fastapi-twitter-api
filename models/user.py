@@ -5,7 +5,10 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class BaseUser(BaseModel):
-    user_id: str = Field(...)
+    user_id: str = Field(
+        ...,
+        example="875a5138-466f-4954-9986-6864a928bdc7",
+    )
     email: EmailStr = Field(
         ...,
         example="rafa@gmail.com",
