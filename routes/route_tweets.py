@@ -1,11 +1,11 @@
-import json
+import uuid
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Body, status
+from fastapi import APIRouter, Body, HTTPException, Path, status
 
 from db.mongo_connection import MongoDB
-from models.tweet import Tweet
+from models.tweet import Tweet, TweetInfo
 
 router = APIRouter()
 
@@ -22,6 +22,7 @@ def show_tweets():
     Returns:
     - All tweets in the app
     """
+
     db = MongoDB.get_instance()
     tweets_collection = db.tweets
 
@@ -36,7 +37,7 @@ def show_tweets():
     status_code=status.HTTP_201_CREATED,
     summary="Creates a new tweet",
 )
-def create_tweet(tweet: Tweet = Body(...)):
+def create_tweet(tweet: TweetInfo = Body(...)):
     """
     Create tweet
 
@@ -44,7 +45,7 @@ def create_tweet(tweet: Tweet = Body(...)):
 
     Parameters:
     - Request body:
-        - tweet: Tweet
+        - tweet: TweetInfo
 
     Returns:
     - Tweet
@@ -54,7 +55,7 @@ def create_tweet(tweet: Tweet = Body(...)):
     tweets_collection = db.tweets
 
     tweet_dict = tweet.dict()
-    tweet_dict["tweet_id"] = str(tweet_dict["tweet_id"])
+    tweet_dict["tweet_id"] = str(uuid.uuid4())
     tweet_dict["created_at"] = str(datetime.now())
     tweet_dict["updated_at"] = str(tweet_dict["updated_at"])
 
@@ -71,8 +72,30 @@ def create_tweet(tweet: Tweet = Body(...)):
     response_model=Tweet,
     summary="Gets a tweet based on the id",
 )
-def show_tweet():
-    pass
+def show_tweet(tweet_id: str = Path(...)):
+    """
+    Get tweet based on a given id
+
+    Parameters:
+    - Path:
+        - tweet_id: UUID
+
+    Returns:
+    - Tweet
+    """
+
+    db = MongoDB.get_instance()
+    tweets_collection = db.tweets
+
+    tweet_doc = tweets_collection.find_one({"tweet_id": tweet_id})
+
+    if not tweet_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tweet not found",
+        )
+
+    return dict(tweet_doc)
 
 
 @router.delete(
@@ -80,8 +103,30 @@ def show_tweet():
     response_model=Tweet,
     summary="Deletes a tweet based on the id",
 )
-def delete_tweet():
-    pass
+def delete_tweet(tweet_id: str = Path(...)):
+    """
+    Delete a tweet
+
+    Parameters:
+    - Path:
+        - tweet_id: UUID
+
+    Returns:
+    - Tweet
+    """
+
+    db = MongoDB.get_instance()
+    tweets_collection = db.tweets
+
+    tweet_doc = tweets_collection.find_one_and_delete({"tweet_id": tweet_id})
+
+    if not tweet_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tweet not found",
+        )
+
+    return tweet_doc
 
 
 @router.put(
@@ -89,5 +134,45 @@ def delete_tweet():
     response_model=Tweet,
     summary="Updates a tweet based on the id",
 )
-def delete_tweet():
-    pass
+def update_tweet(
+    tweet_id: str = Path(...),
+    content: str = Body(
+        ...,
+        min_length=1,
+        max_length=256,
+    ),
+):
+    """
+    Update tweet
+
+    Parameters:
+    - Path:
+        - tweet_id: UUID
+    - Request body:
+        - content: str
+
+    Returns:
+    - Tweet
+    """
+
+    db = MongoDB.get_instance()
+    tweets_collection = db.tweets
+
+    tweet_doc = tweets_collection.find_one_and_update(
+        filter={"tweet_id": tweet_id},
+        update={
+            "$set": {
+                "content": content,
+                "updated_at": str(datetime.now()),
+            },
+        },
+        new=True,
+    )
+
+    if not tweet_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tweet not found",
+        )
+
+    return tweet_doc

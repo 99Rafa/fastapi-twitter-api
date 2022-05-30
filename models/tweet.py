@@ -7,8 +7,11 @@ from pydantic import BaseModel, Field
 from models.user import User
 
 
-class Tweet(BaseModel):
+class BaseTweet(BaseModel):
     tweet_id: UUID = Field(...)
+
+
+class TweetInfo(BaseModel):
     content: str = Field(
         ...,
         min_length=1,
@@ -17,3 +20,7 @@ class Tweet(BaseModel):
     created_at: datetime = Field(default=datetime.now())
     updated_at: Optional[datetime] = Field(None)
     by: User = Field(...)
+
+
+class Tweet(BaseTweet, TweetInfo):
+    pass
